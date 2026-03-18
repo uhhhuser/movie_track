@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Movies</title>
+    <style>
+        /* Simple styling for the movie grid */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .movie-card {
+            text-align: center;
+        }
+        
+        .movie-card img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .movie-card .title {
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        
+        .movie-card .year {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .no-poster {
+            width: 100%;
+            height: 225px;
+            background: #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Movies</h1>
+    
+    <!-- Search Form -->
+    <form action="/search" method="GET">
+        <input 
+            type="text" 
+            name="query" 
+            placeholder="Search for a movie..." 
+            value="{{ query }}"
+            style="padding: 8px; width: 300px;"
+        >
+        <button type="submit" style="padding: 8px 16px;">Search</button>
+    </form>
+
+    <!-- Results -->
+    {% if query %}
+        <h2>Results for "{{ query }}":</h2>
+        
+        {% if results %}
+            <div class="movie-grid">
+            {% for movie in results %}
+                <div class="movie-card">
+                    <!-- Poster Image -->
+                    {% if movie.posterURL %}
+                        <img src="{{ movie.posterURL }}" alt="{{ movie.title }} poster">
+                    {% else %}
+                        <div class="no-poster">No Poster</div>
+                    {% endif %}
+                    
+                    <!-- Movie Info -->
+                    <div class="title">{{ movie.title }}</div>
+                    <div class="year">
+                        {{ movie.release_date[:4] if movie.release_date else 'Unknown' }}
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p>No movies found.</p>
+        {% endif %}
+    {% endif %}
+
+    <br><br>
+    <a href="/">← Back to Home</a>
+</body>
+</html>
