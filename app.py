@@ -4,6 +4,7 @@ from dbstruct import db, user, movie, movielist
 from auth import auth
 from watchlist import movies
 from lists import lists
+from clubs import clubs
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
@@ -15,6 +16,7 @@ db.init_app(app)
 app.register_blueprint(auth)
 app.register_blueprint(movies)
 app.register_blueprint(lists)
+app.register_blueprint(clubs)
 
 @app.route('/')
 def home():
@@ -27,8 +29,17 @@ def search():
         results = searchMovie(query)
     else:
         results = []
-    userLists = movielist.query.filter_by(userID=session.get('userID')).all() if 'userID' in session else []
-    return render_template('search.html', query=query, results=results, user_lists=userLists)
+    
+    user_lists = []
+    club_lists = []
+    if 'userID' in session:
+        current_user = user.query.get(session['userID'])
+        user_lists = movielist.query.filter_by(userID=session['userID']).all()
+        # all club lists (public, will have to add private feature later)
+        for c in current_user.clubs:
+            club_lists.extend(c.lists)
+    
+    return render_template('search.html', query=query, results=results, user_lists=user_lists, club_lists=club_lists)
 
 if __name__ == '__main__':
     with app.app_context():

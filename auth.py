@@ -6,42 +6,37 @@ auth = Blueprint('auth', __name__)
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        nickname = request.form.get('nickname')
 
-        logUser = User.query.filter_by(username=username).first()
+        logUser = User.query.filter_by(nickname=nickname).first()
 
-        if logUser and logUser.check_password(password):
-            session['username'] = logUser.username
+        if logUser:
+            session['username'] = logUser.nickname
             session['userID'] = logUser.id
             return redirect(url_for('home'))
         else:
-            flash('invalid user and pass')
+            flash('user not found')
             
     return render_template('login.html')
 
 @auth.route('/logout')
 def logout():
     session.pop('username', None)
+    session.pop('userID', None)
     return redirect(url_for('home'))
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        nickname = request.form.get('nickname')
 
-        if len(password) < 6 or len(password) > 16:
-            flash("pass has to be 6-16 characters")
-            
-        elif User.query.filter_by(username=username).first():
-            flash("username exists")
-            
+        if not nickname or len(nickname) < 1 or len(nickname) > 16:
+            flash("nickname has to be 1-16 characters")
+        elif User.query.filter_by(nickname=nickname).first():
+            flash("nickname exists")
         else:
-            newUser = User(username=username)
-            newUser.set_password(password)
+            newUser = User(nickname=nickname)
             db.session.add(newUser)
             db.session.commit()
 

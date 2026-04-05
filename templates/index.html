@@ -22,6 +22,9 @@
     <div class="nav">
         <a href="{{ url_for('search') }}">Search Movies</a> |
         <a href="{{ url_for('movies.my_lists') }}">My Lists</a>
+        {% if username %}
+            | <a href="{{ url_for('clubs.list_clubs') }}">Clubs</a>
+        {% endif %}
         {% if not username %}
             | <a href="{{ url_for('auth.login') }}">Login</a> |
             <a href="{{ url_for('auth.signup') }}">Sign Up</a>

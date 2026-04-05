@@ -26,8 +26,7 @@
     {% endwith %}
 
     <form method="POST" action="{{ url_for('auth.login') }}">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
+        <input type="text" name="nickname" placeholder="Username" required maxlength="16">
         <button type="submit">Login</button>
     </form>
 

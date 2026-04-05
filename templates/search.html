@@ -19,6 +19,7 @@
         <a href="{{ url_for('home') }}">Home</a> |
         {% if session.get('username') %}
             <a href="{{ url_for('movies.my_lists') }}">My Lists</a> |
+            <a href="{{ url_for('clubs.list_clubs') }}">Clubs</a> |
             Welcome, {{ session.get('username') }}! |
             <a href="{{ url_for('auth.logout') }}">Logout</a>
         {% else %}
@@ -55,15 +56,26 @@
                         <p>{{ movie.overview or 'No description available.' }}</p>
                         <p>Rating: {{ movie.vote_average or 'N/A' }}</p>
                         {% if session.get('username') %}
-                            {% if user_lists %}
+                            {% if user_lists or club_lists %}
                                 <form method="POST" action="{{ url_for('movies.addMovie') }}" style="display: inline;">
                                     <input type="hidden" name="tmdb_id" value="{{ movie.id }}">
                                     <input type="hidden" name="title" value="{{ movie.title }}">
                                     <input type="hidden" name="poster" value="{{ movie.posterURL or '' }}">
-                                    <select name="list_id" multiple style="vertical-align: middle; min-width: 120px; height: 60px;">
-                                        {% for list in user_lists %}
-                                            <option value="{{ list.id }}">{{ list.name }}</option>
-                                        {% endfor %}
+                                    <select name="list_id" multiple style="vertical-align: middle; min-width: 150px; height: 80px;">
+                                        {% if user_lists %}
+                                            <optgroup label="My Lists">
+                                                {% for list in user_lists %}
+                                                    <option value="{{ list.id }}">{{ list.name }}</option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        {% endif %}
+                                        {% if club_lists %}
+                                            <optgroup label="Club Lists">
+                                                {% for list in club_lists %}
+                                                    <option value="{{ list.id }}">{{ list.name }} ({{ list.club.name }})</option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        {% endif %}
                                     </select>
                                     <button type="submit">Add</button>
                                 </form>

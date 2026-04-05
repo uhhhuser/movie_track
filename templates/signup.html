@@ -26,9 +26,8 @@
     {% endwith %}
 
     <form method="POST" action="{{ url_for('auth.signup') }}">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password (6-16 characters)" required>
-        <button type="submit">Create Account</button>
+        <input type="text" name="nickname" placeholder="Username" required maxlength="16">
+        <button type="submit">Create</button>
     </form>
 
     <div class="nav-link">

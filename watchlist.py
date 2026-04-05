@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from dbstruct import db, movie, movielist
+from dbstruct import db, user, movie, movielist, club
 
 movies = Blueprint('movies', __name__)
 
@@ -36,10 +36,11 @@ def addMovie():
         db.session.add(new_movie)
         db.session.commit()
 
+    current_user = user.query.get(session['userID'])
     added_to = []
     for list_id in listIds:
-        listObj = movielist.query.filter_by(id=list_id, userID=session['userID']).first()
-        if listObj:
+        listObj = movielist.query.get(list_id)
+        if listObj and listObj.can_edit(current_user):
             if new_movie not in listObj.movies:
                 listObj.movies.append(new_movie)
                 added_to.append(listObj.name)
@@ -58,21 +59,30 @@ def removeMovie(movieId):
         return redirect(url_for('auth.login'))
     
     listId = request.form.get('list_id')
-    movieRemove = movie.query.filter_by(id=movieId, userID=session['userID']).first()
+    current_user = user.query.get(session['userID'])
+    listObj = movielist.query.get(listId)
     
-    if movieRemove:
-        listObj = movielist.query.filter_by(id=listId, userID=session['userID']).first()
-        if listObj and movieRemove in listObj.movies:
-            listObj.movies.remove(movieRemove)
+    if not listObj:
+        flash("list not found")
+        return redirect(request.referrer or url_for('home'))
+    
+    if not listObj.can_edit(current_user):
+        flash("you don't have permission to edit this list")
+        return redirect(request.referrer or url_for('home'))
+    
+    # find the movie for club lists
+    movieRemove = movie.query.get(movieId)
+    
+    if movieRemove and movieRemove in listObj.movies:
+        listObj.movies.remove(movieRemove)
+        db.session.commit()
+        flash(f"removed {movieRemove.title} from {listObj.name}")
+
+        if not movieRemove.lists:
+            db.session.delete(movieRemove)
             db.session.commit()
-            flash(f"removed {movieRemove.title} from {listObj.name}")
-            if not movieRemove.lists:
-                db.session.delete(movieRemove)
-                db.session.commit()
-        else:
-            flash("list not found")
     else:
-        flash("movie not found")
+        flash("movie not found in list")
         
     return redirect(request.referrer or url_for('home'))
 
