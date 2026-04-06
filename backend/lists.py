@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from backend.dbstruct import db, movielist
+from backend.dbstruct import db, movielist, user
 
 lists = Blueprint('lists', __name__)
 
@@ -35,3 +35,23 @@ def create_list():
         'message': f'Created list: {list_name}',
         'list': new_list.to_dict()
     }), 201
+
+# get specific lists
+@lists.route('/<int:list_id>', methods=['GET'])
+@jwt_required()
+def get_list(list_id):
+    user_id = int(get_jwt_identity())
+    current_user = user.query.get(user_id)
+    list_obj = movielist.query.get_or_404(list_id)
+    
+    # visibility check
+    if list_obj.is_personal_list() and list_obj.userID != user_id:
+        return jsonify({'error': 'You do not have permission to view this list'}), 403
+    
+    if list_obj.is_club_list():
+        if not list_obj.club.is_member(current_user):
+            return jsonify({'error': 'You must be a club member to view this list'}), 403
+    
+    return jsonify({
+        'list': list_obj.to_dict(include_movies=True)
+    }), 200
